@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Let's Get Well — Admin</title>
+<style>
+:root{--purple:#69439d;--pink:#ec3b96;--dark:#241c30;--bg:#f6f2fa;--card:#fff;--line:#e4daf0;--muted:#6f6480;--ok:#1d7a4f;--warn:#a35b00}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--dark)}
+header{background:var(--dark);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header .brand{font-weight:800;font-size:18px}
+header .brand span{color:var(--pink)}
+header nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+header button.tab,header button.ghost{background:transparent;color:#fff;border:1px solid #574a6e;border-radius:99px;padding:7px 14px;cursor:pointer;font-size:14px}
+header button.tab.active{background:var(--pink);border-color:var(--pink);font-weight:700}
+main{max-width:980px;margin:0 auto;padding:22px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(36,28,48,.05)}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:18px;margin:0 0 12px}
+.muted{color:var(--muted)} .small{font-size:13px}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+textarea{min-height:64px;resize:vertical}
+.btn{background:var(--pink);color:#fff;border:0;border-radius:99px;padding:11px 22px;font-weight:700;cursor:pointer;font-size:15px}
+.btn.secondary{background:var(--purple)}
+.btn.plain{background:#efe9f7;color:var(--dark)}
+.btn.danger{background:#fdecec;color:#a11}
+.btn:disabled{opacity:.55;cursor:wait}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:#faf7fd;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.stat b{display:block;font-size:26px;color:var(--purple)}
+.booking{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;background:#fff}
+.booking .top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.booking .name{font-weight:800;font-size:17px}
+.pill{border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700}
+.pill.New{background:#fde7f3;color:#a1105f}.pill.Called{background:#fff3d6;color:var(--warn)}.pill.Booked{background:#e2f4ea;color:var(--ok)}.pill.Done{background:#ececf1;color:#555}
+.booking .meta{color:var(--muted);font-size:13px;margin:4px 0 8px}
+.booking .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.booking .row select{width:auto}
+.booking .row .grow{flex:1;min-width:180px}
+a.tel{color:var(--pink);font-weight:700;text-decoration:none}
+.err{background:#fdecec;color:#8c1010;border-radius:10px;padding:10px 14px;margin:12px 0;display:none}
+.okmsg{background:#e2f4ea;color:var(--ok);border-radius:10px;padding:10px 14px;margin:12px 0;display:none}
+.act{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.act:last-child{border-bottom:0}
+.act time{color:var(--muted);white-space:nowrap;font-size:13px}
+.center-box{max-width:420px;margin:8vh auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header id="appbar" style="display:none">
+  <div class="brand">Let's Get Well <span>Admin</span></div>
+  <nav>
+    <button class="tab active" data-tab="bookings">Bookings</button>
+    <button class="tab" data-tab="settings">Site Settings</button>
+    <button class="tab" data-tab="activity">Activity</button>
+    <button class="ghost" id="signout">Sign out</button>
+  </nav>
+</header>
+
+<main>
+  <!-- SETUP / LOGIN -->
+  <div id="gate" class="center-box" style="display:none">
+    <div class="card">
+      <h1 id="gate-title">Admin sign in</h1>
+      <p class="muted small" id="gate-text">Sign in to manage booking requests, site settings, and activity for Let's Get Well LLC.</p>
+      <div class="err" id="gate-err"></div>
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password">
+      <div id="pw2wrap" style="display:none">
+        <label for="pw2">Repeat the password</label>
+        <input id="pw2" type="password" autocomplete="new-password">
+      </div>
+      <p><button class="btn" id="gate-btn" style="width:100%">Sign in</button></p>
+      <p class="small muted">This page is private. If you are not the business owner, please use the public site instead.</p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" style="display:none">
+    <section id="tab-bookings">
+      <div class="grid" id="counts" style="margin-bottom:16px"></div>
+      <div class="card">
+        <h2>Callback requests</h2>
+        <p class="muted small" style="margin-top:-6px">Newest first. Every request from the website form lands here. Move each one along as you work it: New → Called → Booked → Done.</p>
+        <div id="booking-list"></div>
+        <p class="muted" id="booking-empty" style="display:none">No requests yet. When a visitor submits the form on your site, it will appear here.</p>
+      </div>
+    </section>
+
+    <section id="tab-settings" style="display:none">
+      <div class="card">
+        <h2>Site settings</h2>
+        <p class="muted small" style="margin-top:-6px">Changes save to the live website. Your phone number, prices, hours, and colors update on the public pages as soon as you save.</p>
+        <div class="err" id="set-err"></div>
+        <div class="okmsg" id="set-ok">Settings saved — the public site now shows the new details.</div>
+        <div class="two">
+          <div><label>Business name</label><input id="f-name"></div>
+          <div><label>Phone</label><input id="f-phone"></div>
+          <div><label>Booking email</label><input id="f-email" type="email" placeholder="Where a copy of each request can be emailed"></div>
+          <div><label>Website</label><input id="f-web"></div>
+          <div><label>Hours line</label><input id="f-hours"></div>
+          <div><label>Brand colors</label><div style="display:flex;gap:8px"><input id="f-purple" type="color" style="height:42px;padding:4px"><input id="f-pink" type="color" style="height:42px;padding:4px"></div></div>
+          <div><label>Mobile travel fee ($)</label><input id="f-travelFee" type="number" min="0" step="1"></div>
+          <div><label>Blood draw fee ($)</label><input id="f-drawFee" type="number" min="0" step="1"></div>
+          <div><label>After-hours / weekend surcharge, low ($)</label><input id="f-surchargeLow" type="number" min="0" step="1"></div>
+          <div><label>After-hours / weekend surcharge, high ($)</label><input id="f-surchargeHigh" type="number" min="0" step="1"></div>
+          <div><label>Cancellation / no-show fee ($)</label><input id="f-cancelFee" type="number" min="0" step="1"></div>
+        </div>
+        <p class="small muted">Standard visit total on your site is travel fee + blood draw fee.</p>
+        <p><button class="btn" id="set-save">Save settings</button></p>
+      </div>
+      <div class="card">
+        <h2>Change password</h2>
+        <div class="err" id="pw-err"></div>
+        <div class="okmsg" id="pw-ok">Password changed.</div>
+        <div class="two">
+          <div><label>Current password</label><input id="cpw" type="password" autocomplete="current-password"></div>
+          <div><label>New password (10+ characters)</label><input id="npw" type="password" autocomplete="new-password"></div>
+        </div>
+        <p><button class="btn secondary" id="pw-save">Change password</button></p>
+      </div>
+    </section>
+
+    <section id="tab-activity" style="display:none">
+      <div class="card">
+        <h2>Recent activity</h2>
+        <p class="muted small" style="margin-top:-6px">The latest 100 things that happened: requests received, status changes, settings edits, and sign-ins.</p>
+        <div id="act-list"></div>
+        <p class="muted" id="act-empty" style="display:none">Nothing yet.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+async function api(path,opts={}){const r=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&path!=='/api/auth')showGate(true);return{status:r.status,...j}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function when(iso){const d=new Date(iso);return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+let setupMode=false;
+
+async function init(){
+  const st=await api('/api/auth',{method:'POST',body:JSON.stringify({action:'status'})});
+  if(!st.setupDone){setupMode=true;showGate(false);$('gate-title').textContent='Create your admin password';$('gate-text').textContent='First visit: choose the password you will use to sign in to your admin. Use at least 10 characters, and keep it somewhere safe.';$('pw2wrap').style.display='block';$('gate-btn').textContent='Create password and sign in';return}
+  if(!st.signedIn){showGate(true);return}
+  showApp();
+}
+function showGate(isLogin){
+  $('gate').style.display='block';$('app').style.display='none';$('appbar').style.display='none';
+  if(isLogin){setupMode=false;$('gate-title').textContent='Admin sign in';$('pw2wrap').style.display='none';$('gate-btn').textContent='Sign in'}
+  $('pw').focus();
+}
+function showApp(){$('gate').style.display='none';$('app').style.display='block';$('appbar').style.display='flex';loadAll()}
+$('gate-btn').onclick=async()=>{
+  const pw=$('pw').value;const err=$('gate-err');err.style.display='none';
+  if(setupMode&&pw!==$('pw2').value){err.textContent='The two passwords do not match.';err.style.display='block';return}
+  const r=await api('/api/auth',{method:'POST',body:JSON.stringify({action:setupMode?'setup':'login',password:pw})});
+  if(!r.ok){err.textContent=r.error||'Sign-in failed.';err.style.display='block';return}
+  setupMode=false;showApp();
+};
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('gate-btn').click()});
+$('signout').onclick=async()=>{await api('/api/auth',{method:'POST',body:JSON.stringify({action:'logout'})});location.reload()};
+document.querySelectorAll('header button.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('header button.tab').forEach(x=>x.classList.toggle('active',x===b));
+  for(const t of ['bookings','settings','activity']) $('tab-'+t).style.display=t===b.dataset.tab?'block':'none';
+  if(b.dataset.tab==='activity')loadActivity();
+});
+
+async function loadAll(){await Promise.all([loadBookings(),loadSettings(),loadActivity()])}
+let bookings=[];
+async function loadBookings(){
+  const r=await api('/api/bookings');
+  if(!r.ok)return;
+  bookings=r.bookings;renderCounts();renderBookings();
+}
+function renderCounts(){
+  const c={New:0,Called:0,Booked:0,Done:0};for(const b of bookings)if(c[b.status]!==undefined)c[b.status]++;
+  $('counts').innerHTML=[['Total requests',bookings.length],['New',c.New],['Called',c.Called],['Booked',c.Booked],['Done',c.Done]].map(([k,v])=>`<div class="stat"><b>${v}</b>${k}</div>`).join('');
+}
+function renderBookings(){
+  $('booking-empty').style.display=bookings.length?'none':'block';
+  $('booking-list').innerHTML=bookings.map(b=>`
+  <div class="booking" data-id="${b.id}">
+    <div class="top"><span class="name">${esc(b.name)}</span><span class="pill ${esc(b.status)}">${esc(b.status)}</span><span class="muted small">${when(b.createdAt)}</span></div>
+    <div class="meta">${esc(b.type)} · Preferred ${esc(b.date)} · ZIP ${esc(b.zip)} · ${esc(b.order)}</div>
+    <div>Phone: <a class="tel" href="tel:${esc(b.phone.replace(/\D/g,''))}">${esc(b.phone)}</a> · Email: ${esc(b.email)}</div>
+    ${b.notes?`<div style="margin-top:6px"><b>Notes:</b> ${esc(b.notes)}</div>`:''}
+    <div class="row">
+      <label style="margin:0">Status</label>
+      <select class="st">${['New','Called','Booked','Done'].map(s=>`<option ${s===b.status?'selected':''}>${s}</option>`).join('')}</select>
+      <input class="grow nt" placeholder="Your private note (callback time, directions…)" value="${esc(b.adminNote||'')}">
+      <button class="btn plain save-b" style="padding:8px 16px">Save</button>
+      <button class="btn danger del-b" style="padding:8px 16px">Delete</button>
+    </div>
+  </div>`).join('');
+  document.querySelectorAll('.booking').forEach(el=>{
+    el.querySelector('.save-b').onclick=async()=>{
+      const r=await api('/api/bookings',{method:'PATCH',body:JSON.stringify({id:el.dataset.id,status:el.querySelector('.st').value,adminNote:el.querySelector('.nt').value})});
+      if(r.ok){bookings=bookings.map(x=>x.id===r.booking.id?r.booking:x);renderCounts();renderBookings()}
+    };
+    el.querySelector('.del-b').onclick=async()=>{
+      if(!confirm('Delete this request? This cannot be undone.'))return;
+      const r=await api('/api/bookings',{method:'DELETE',body:JSON.stringify({id:el.dataset.id})});
+      if(r.ok){bookings=bookings.filter(x=>x.id!==el.dataset.id);renderCounts();renderBookings()}
+    };
+  });
+}
+const SFIELDS=['name','phone','email','web','hours','purple','pink','travelFee','drawFee','surchargeLow','surchargeHigh','cancelFee'];
+async function loadSettings(){
+  const r=await api('/api/settings');if(!r.ok)return;
+  for(const k of SFIELDS){const el=$('f-'+k);if(el)el.value=r.settings[k]}
+}
+$('set-save').onclick=async()=>{
+  const payload={};for(const k of SFIELDS)payload[k]=$('f-'+k).value;
+  const r=await api('/api/settings',{method:'PUT',body:JSON.stringify(payload)});
+  $('set-err').style.display=r.ok?'none':'block';if(!r.ok)$('set-err').textContent=r.error||'Save failed.';
+  $('set-ok').style.display=r.ok?'block':'none';
+};
+$('pw-save').onclick=async()=>{
+  const r=await api('/api/auth',{method:'POST',body:JSON.stringify({action:'change-password',current:$('cpw').value,next:$('npw').value})});
+  $('pw-err').style.display=r.ok?'none':'block';if(!r.ok)$('pw-err').textContent=r.error||'Change failed.';
+  $('pw-ok').style.display=r.ok?'block':'none';if(r.ok){$('cpw').value='';$('npw').value=''}
+};
+async function loadActivity(){
+  const r=await api('/api/activity');if(!r.ok)return;
+  $('act-empty').style.display=r.activity.length?'none':'block';
+  $('act-list').innerHTML=r.activity.map(a=>`<div class="act"><time>${when(a.at)}</time><span>${esc(a.text)}</span></div>`).join('');
+}
+init();
+</script>
+</body>
+</html>
